@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -53,6 +55,10 @@ public class CheckIn extends AppCompatActivity {
     String userName;
 
     public Context context;
+    boolean validVisID ;
+    boolean validVisPN ;
+    boolean validHostID ;
+    boolean validHostPN ;
 
     final String username = "innov302iiitd@gmail.com";
     final String password = "Innov302@iiitd";
@@ -70,7 +76,26 @@ public class CheckIn extends AppCompatActivity {
         }
         return false;
     }
+    public static boolean isValidEmailAddress(String email) {
+        boolean result = true;
+        if(email.isEmpty()){return false;}
+        else {
+            try {
+                InternetAddress emailAddr = new InternetAddress(email);
+                emailAddr.validate();
+            } catch (AddressException ex) {
+                result = false;
+            }
+            return result;
+        }
+    }
+    public static boolean isValidPhoneNumber(String PN) {
+       if(PN.isEmpty()){return false;}
+       else{
+           return PN.matches("(0/91)?[7-9][0-9]{9}");
+       }
 
+    }
     public void sendMail(String from, String to, String subject, String body) {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -111,6 +136,8 @@ public class CheckIn extends AppCompatActivity {
         StrictMode.setThreadPolicy(policy);
         context = this;
 
+        visitor = MainActivity.visitor;
+
         visName = findViewById(R.id.VisName);
         visID = findViewById(R.id.VisID);
         visPN = findViewById(R.id.VisPN);
@@ -122,21 +149,99 @@ public class CheckIn extends AppCompatActivity {
 
         userEmail = MainActivity.userEmail;
         userName = MainActivity.userName;
-
+        validHostID = false;
+        validHostPN = false;
+        validVisID = false;
+        validVisPN = false;
         visID.setText(userEmail);
         visName.setText(userName);
 
+        visID.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    visitor.visID = visID.getText().toString();
+                    visitor.visName = visName.getText().toString();
+                    validVisID=isValidEmailAddress(visitor.visID);
+                    if(validVisID==false){
+                        visID.setBackgroundColor(Color.RED);
+                        visID.setTextColor(Color.WHITE);
+                    }else{
+                        visID.setBackgroundColor(Color.TRANSPARENT);
+                        visID.setTextColor(Color.argb(100,233,30,99));
+                    }
+                }
+            }
+        });
+
+        visPN.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    visitor.visPN = visPN.getText().toString();
+                    validVisPN=isValidPhoneNumber(visitor.visPN);
+                    if(validVisPN==false){
+                        visPN.setBackgroundColor(Color.RED);
+//                        visPN.setHintTextColor(Color.WHITE);
+                        visPN.setTextColor(Color.WHITE);
+                    }else{
+                        visPN.setBackgroundColor(Color.TRANSPARENT);
+                        visPN.setTextColor(Color.argb(100,233,30,99));
+
+                    }
+                }
+            }
+        });
+
+        HostID.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    visitor.hostID = HostID.getText().toString();
+                    visitor.hostName = HostName.getText().toString();
+                    validHostID=isValidEmailAddress(visitor.hostID);
+                    if(validHostID==false){
+                        HostID.setBackgroundColor(Color.RED);
+//                        HostID.setHintTextColor(Color.WHITE);
+                        HostID.setTextColor(Color.WHITE);
+                    }else{
+                        HostID.setBackgroundColor(Color.TRANSPARENT);
+                        HostID.setTextColor(Color.argb(100,233,30,99));
+                    }
+                }
+            }
+        });
+
+        HostPN.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    visitor.hostPN = HostPN.getText().toString();
+                    validHostPN=isValidPhoneNumber(visitor.hostPN);
+
+                    if(validHostPN==false){
+                        HostPN.setBackgroundColor(Color.RED);
+
+                        HostPN.setTextColor(Color.WHITE);
+                    }else{
+                        HostPN.setBackgroundColor(Color.TRANSPARENT);
+                        HostPN.setTextColor(Color.argb(100,216,27,96));
+
+                    }
+                }
+//                if(validHostID && validHostPN && validVisID && validVisPN ) {
+//                    CheckIn.setActivated(true);
+//
+//                } else {
+//                    CheckIn.setActivated(false);
+//                }
+            }
+
+
+        });
         CheckIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                visitor = MainActivity.visitor;
-
-                visitor.visID = visID.getText().toString();
-                visitor.visName = visName.getText().toString();
-                visitor.visPN = visPN.getText().toString();
-                visitor.hostID = HostID.getText().toString();
-                visitor.hostName = HostName.getText().toString();
-                visitor.hostPN = HostPN.getText().toString();
                 visitor.isCheckedIn = true;
                 visitor.timeCheckIn = System.currentTimeMillis();
 
@@ -157,9 +262,16 @@ public class CheckIn extends AppCompatActivity {
 
                         }
                         catch (Exception e){}
-                        Intent intent = new Intent(context, CheckOut.class);
-                        startActivity(intent);
 
+
+                        if(validHostID && validHostPN && validVisID && validVisPN ) {
+                            Log.d("debug", "valid");
+
+                            Intent intent = new Intent(context, CheckOut.class);
+                            startActivity(intent);
+                        }else{
+                            Log.d("debug", "something not valid");
+                        }
 
                     }
                 });
