@@ -151,28 +151,12 @@ public class CheckIn extends AppCompatActivity {
         userName = MainActivity.userName;
         validHostID = false;
         validHostPN = false;
-        validVisID = false;
+        validVisID = true;
         validVisPN = false;
         visID.setText(userEmail);
         visName.setText(userName);
-
-        visID.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus) {
-                    visitor.visID = visID.getText().toString();
-                    visitor.visName = visName.getText().toString();
-                    validVisID=isValidEmailAddress(visitor.visID);
-                    if(validVisID==false){
-                        visID.setBackgroundColor(Color.RED);
-                        visID.setTextColor(Color.WHITE);
-                    }else{
-                        visID.setBackgroundColor(Color.TRANSPARENT);
-                        visID.setTextColor(Color.argb(100,233,30,99));
-                    }
-                }
-            }
-        });
+        visitor.visID = userEmail;
+        visitor.visName = userName;
 
         visPN.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
